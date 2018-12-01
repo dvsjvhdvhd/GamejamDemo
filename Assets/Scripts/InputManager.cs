@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using SonicBloom.Koreo;
+using UnityEngine.UI;
 
 namespace GameLogic
 {
@@ -11,6 +12,13 @@ namespace GameLogic
         Attack01,
         Attack02,
         Attack03,
+    }
+
+    [System.Serializable]
+    public struct Combo
+    {
+        public string value;
+        public PlayerAnimState state;
     }
 
     public class InputManager : MonoBehaviour
@@ -51,10 +59,12 @@ namespace GameLogic
         public PlayerAnimState playerAnimState;
         public Animator playerAnimator;
         public AudioSource audioCom;
+        public List<Combo> skillCombo;
+        public float pitchControl;
 
         [HideInInspector]
-        public List<KeyCode> userInputs;
-        [Range(50f, 150f)]
+        public List<string> userInputs;
+        [Range(50f, 500f)]
         public int rangeInMS;
 
         public int SampleRate
@@ -80,25 +90,30 @@ namespace GameLogic
 
         private void Start()
         {
-            Koreographer.Instance.RegisterForEvents(eventID, UserInput);
+            audioCom.pitch = pitchControl;
+            Koreographer.Instance.RegisterForEvents(eventID, MusicEvent);
             eventIndex = 0;
             controller = Koreographer.Instance.GetKoreographyAtIndex(0);
             rhythmTrack = controller.GetTrackByID(eventID);
             rawEvents = rhythmTrack.GetAllEvents();
-            Debug.LogError(rawEvents.Count);
         }
 
         private void Update()
         {
             UpdateInternalValues();
 
-            if (userInputs.Count == 8)
+            if (userInputs.Count == 7)
             {
-                foreach (var key in userInputs)
+                var inputCombo = string.Join("", userInputs.ToArray());
+                Debug.LogError(inputCombo);
+                foreach (var combo in skillCombo)
                 {
-                    Debug.Log(key);
+                    if (inputCombo == combo.value)
+                    {
+                        ChangeState(combo.state);
+                        break;
+                    }
                 }
-                Debug.Log("================================");
                 userInputs.Clear();
             }
 
@@ -106,40 +121,40 @@ namespace GameLogic
             {
                 if (Input.GetKeyDown(KeyCode.A))
                 {
-                    userInputs.Add(KeyCode.A);
-                    Debug.LogError("A");
+                    userInputs.Add("A");
                     eventIndex++;
                 }
                 else if (Input.GetKeyDown(KeyCode.B))
                 {
-                    userInputs.Add(KeyCode.B);
-                    Debug.LogError("B");
+                    userInputs.Add("B");
                     eventIndex++;
-                }          
+                }
             }
 
             if (isMissed)
             {
-                userInputs.Add(KeyCode.Space);
-                Debug.LogError("=");
+                userInputs.Add("=");
                 eventIndex++;
             }
         }
 
-        private void UserInput(KoreographyEvent koreoEvent)
+        private void MusicEvent(KoreographyEvent koreoEvent)
         {
-
+            Debug.Log("event");
         }
 
         public void ChangeState(PlayerAnimState state)
         {
             switch (state)
             {
-                case PlayerAnimState.idle:
-                    playerAnimator.SetBool("IsPlay", true);
-                    playerAnimator.SetBool("IsIdle", false);
+                case PlayerAnimState.Attack01:
+                    playerAnimator.SetBool("Attack01", true);
                     break;
-                default:
+                case PlayerAnimState.Attack02:
+                    playerAnimator.SetBool("Attack02", true);
+                    break;
+                case PlayerAnimState.Attack03:
+                    playerAnimator.SetBool("Attack03", true);
                     break;
             }
         }

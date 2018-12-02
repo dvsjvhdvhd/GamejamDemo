@@ -59,6 +59,7 @@ namespace GameLogic
         public PlayerAnimState playerAnimState;
         public Animator playerAnimator;
         public AudioSource audioCom;
+        public AudioSource audioBeat;
         public List<Combo> skillCombo;
         public float pitchControl;
 
@@ -122,11 +123,13 @@ namespace GameLogic
                 if (Input.GetKeyDown(KeyCode.A))
                 {
                     userInputs.Add("A");
+                    audioBeat.Play();
                     eventIndex++;
                 }
                 else if (Input.GetKeyDown(KeyCode.B))
                 {
                     userInputs.Add("B");
+                    audioBeat.Play();
                     eventIndex++;
                 }
             }
